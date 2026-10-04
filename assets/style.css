@@ -242,7 +242,10 @@ td { color: var(--muted); }
 @media(max-width:380px) {
   .header-inner { gap: 13px; }
   .header-inner nav { gap: 14px; }
-  .hero h1 { font-size: 32px; }
+  .hero h1 { font-size: clamp(27px,8.4vw,32px); }
+  .hero-actions { gap: 18px; }
+  .hero-actions .button { padding: 11px 14px; gap: 15px; font-size: 12px; white-space: nowrap; }
+  .hero-actions .text-link { font-size: 12px; }
   .focus-list { grid-template-columns: 1fr; }
   .focus-list li { font-size: 12px; }
   .skill-grid { grid-template-columns: 1fr; }
