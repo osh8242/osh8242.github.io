@@ -5,8 +5,29 @@ from html import escape as e
 from pathlib import Path
 from urllib.parse import quote
 
-ROOT = Path(__file__).resolve().parent
-DATA = json.loads((ROOT / "content.json").read_text(encoding="utf-8"))
+REPO = Path(__file__).resolve().parent
+ROOT = REPO / "portfolio"
+DATA = json.loads((REPO / "content.json").read_text(encoding="utf-8"))
+
+
+def redirect(path, destination, canonical_path):
+    """Preserve old bookmarks, including their query string and section anchor."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f'''<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>포트폴리오 주소 안내 | 오승환</title>
+  <link rel="canonical" href="https://osh8242.github.io/{canonical_path}">
+  <script>location.replace({json.dumps(destination)} + location.search + location.hash);</script>
+  <meta http-equiv="refresh" content="0; url={e(destination, quote=True)}">
+</head>
+<body>
+  <h1>포트폴리오 주소가 변경되었습니다.</h1>
+  <p><a href="{e(destination, quote=True)}">새 포트폴리오로 이동</a></p>
+</body>
+</html>''', encoding="utf-8")
 
 ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>'
 ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>'
@@ -146,7 +167,12 @@ def project_page(p, next_project):
 
 
 if __name__ == '__main__':
+    ROOT.mkdir(parents=True, exist_ok=True)
     home()
     for index, project in enumerate(DATA['projects']):
         project_page(project, DATA['projects'][(index+1)%len(DATA['projects'])])
-    print('Built index.html and 6 project pages.')
+        redirect(REPO/'projects'/f'{project["slug"]}.html', f'../portfolio/projects/{project["slug"]}.html', f'portfolio/projects/{project["slug"]}.html')
+        redirect(REPO/'assets'/'diagrams'/project['diagram'], f'../../portfolio/assets/diagrams/{project["diagram"]}', f'portfolio/assets/diagrams/{project["diagram"]}')
+    redirect(REPO/'index.html', 'portfolio/', 'portfolio/')
+    redirect(REPO/'portpolio'/'index.html', '../portfolio/', 'portfolio/')
+    print('Built /portfolio/ with 6 project pages and redirects for old URLs.')

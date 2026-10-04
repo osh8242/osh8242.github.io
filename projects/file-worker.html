@@ -3,46 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="파일 생성을 일반 요청과 분리하고, 고객사별 조회부터 스트리밍 생성·업로드·취소 및 실패 정리까지 공통 워커로 처리했습니다.">
-  <meta name="theme-color" content="#f5f4ef">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="대용량 데이터 다운로드를 위한 공통 파일 처리 워커 | 오승환">
-  <meta property="og:description" content="파일 생성을 일반 요청과 분리하고, 고객사별 조회부터 스트리밍 생성·업로드·취소 및 실패 정리까지 공통 워커로 처리했습니다.">
-  <title>대용량 데이터 다운로드를 위한 공통 파일 처리 워커 | 오승환</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
-  <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/site.js" defer></script>
+  <title>포트폴리오 주소 안내 | 오승환</title>
+  <link rel="canonical" href="https://osh8242.github.io/portfolio/projects/file-worker.html">
+  <script>location.replace("../portfolio/projects/file-worker.html" + location.search + location.hash);</script>
+  <meta http-equiv="refresh" content="0; url=../portfolio/projects/file-worker.html">
 </head>
 <body>
-  <a class="skip-link" href="#main">본문으로 바로 가기</a>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="../index.html" aria-label="오승환 포트폴리오 홈"><span class="brand-mark">OS<span>.</span></span><span class="brand-name">오승환</span></a>
-      <nav aria-label="주요 메뉴">
-        <a href="../index.html#about">소개</a>
-        <a href="../index.html#projects" aria-current="page">프로젝트</a>
-        <a href="../index.html#stack">기술</a>
-        <a href="../index.html#contact">연락</a>
-      </nav>
-      <button class="theme-toggle" type="button" aria-label="어두운 테마로 전환" title="테마 전환"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-    </div>
-  </header>
-  <main id="main">
-    <section class="case-hero wrap">
-      <a href="../index.html#projects" class="back-link">← 모든 프로젝트</a>
-      <p class="eyebrow">PROJECT 03 / 비동기 처리</p>
-      <h1>대용량 데이터 다운로드를 위한 공통 파일 처리 워커</h1>
-      <p class="case-intro">여러 서비스가 요청한 대용량 데이터 다운로드를 별도 작업으로 처리하는 Java/Spring 기반 워커입니다. 호출 서비스는 작업을 대기열에 전달한 뒤 바로 응답하고, 워커는 고객사별 데이터 조회, 파일 생성·업로드, 취소·실패 정리, 결과 통보를 맡습니다.</p>
-      <dl class="case-facts"><div><dt>기간</dt><dd>2024.04 ~ 2024.07 · 이후 고도화</dd></div><div><dt>담당 역할</dt><dd>핵심 기능 설계·개발 · 기여도 80%</dd></div></dl>
-      <ul class="chips" aria-label="사용 기술"><li>Java</li><li>Spring Boot</li><li>RabbitMQ</li><li>PostgreSQL / Citus</li><li>Object Storage</li><li>NAS</li></ul>
-    </section>
-    <div class="case-layout wrap">
-      <aside class="case-toc"><p class="eyebrow">IN THIS PROJECT</p><nav aria-label="프로젝트 목차"><ol><li><a href="#problem">해결한 문제</a></li><li><a href="#design">요청 처리와 파일 생성을 분리</a></li><li><a href="#streaming">큰 결과를 스트리밍으로 생성</a></li><li><a href="#lifecycle">상태 통보와 취소·실패 정리</a></li><li><a href="#validation">검증과 운영 보완</a></li><li><a href="#result">결과</a></li><li><a href="#diagram">처리 흐름</a></li></ol></nav><a class="text-link" href="https://app.notion.com/p/3b9361f185c381d8a79ac92e647ef016" target="_blank" rel="noopener noreferrer">노션 원문 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></aside>
-      <div class="case-body"><section class="case-section" id="problem"><h2>해결한 문제</h2><ul><li>대용량 데이터를 파일로 만드는 동안 일반 API 요청이 오래 대기하지 않도록 처리 경로를 분리해야 했습니다.</li><li>고객사별 데이터 위치, 파일 종류, 저장 위치가 달라질 때 공통 파일 생성 흐름까지 함께 수정되는 구조를 줄여야 했습니다.</li><li>취소·실패한 작업에서 로컬 임시 파일과 이미 업로드한 결과물이 남지 않도록 상태와 자원 정리 기준이 필요했습니다.</li></ul></section><section class="case-section" id="design"><h2>요청 처리와 파일 생성을 분리</h2><p>RabbitMQ(메시지 대기열)를 수신한 워커가 파일 생성 작업을 비동기로 처리하도록 구성했습니다. 형식이 잘못된 요청은 반복 재처리하지 않고 종료하며, 일시적 오류는 정해진 횟수만큼 재시도한 뒤 실패 상태와 정리 절차로 넘깁니다.</p><p>메시지의 고객사 식별값으로 해당 데이터마트의 데이터소스와 스키마를 선택합니다. 작업이 끝나면 선택 정보를 해제해 다음 작업에 이전 고객사의 연결 정보가 남지 않도록 했습니다.</p></section><section class="case-section" id="streaming"><h2>큰 결과를 스트리밍으로 생성</h2><p>PostgreSQL/Citus의 데이터 내보내기 스트림을 CSV 파일에 순서대로 기록하고, 압축 파일도 스트림 방식으로 만듭니다. 전체 결과를 메모리에 한 번에 올리지 않으면서 대용량 다운로드를 처리합니다.</p><p>대상 저장소의 규칙에 따라 대용량 파일은 분할·압축하고 Excel 변환은 행 수 제한 안에서 수행합니다. 데이터 다운로드·메타데이터 파일과 Object Storage·NAS 등 저장 위치별 처리를 각각 분리했습니다.</p></section><section class="case-section" id="lifecycle"><h2>상태 통보와 취소·실패 정리</h2><p>호출 서비스의 연동 방식에 따라 기존 상태 저장소 또는 HTTP 상태 콜백으로 진행 상황을 통보합니다. 콜백은 워커가 작업 결과를 호출 서비스 API에 알려 주는 방식입니다.</p><p>업로드 전 취소 여부를 확인하고, 업로드 후에도 다시 확인해 취소된 작업의 원격 파일을 삭제합니다. 로컬 임시 파일과 고객사별 연결 정보는 작업 종료 시 정리합니다.</p><div class="table-scroll"><table><thead><tr><th scope="col">상태</th><th scope="col">의미</th></tr></thead><tbody><tr><td>P</td><td>파일 변환 시작</td></tr><tr><td>U</td><td>파일 업로드 시작</td></tr><tr><td>S / F / C</td><td>성공 / 실패 / 취소</td></tr></tbody></table></div></section><section class="case-section" id="validation"><h2>검증과 운영 보완</h2><ul><li>잘못된 메시지를 재시도 대상에서 구분하고, 재시도 횟수 소진 시 최종 실패 처리와 파일 정리가 수행되는지 테스트했습니다.</li><li>상태 저장 방식 선택, 파일 처리 유형, 저장소별 업로드, 생성 결과물 등록을 단위 테스트로 검증했습니다.</li><li>대용량 Object Storage 업로드의 메모리 사용을 줄이고, 오래 지속되는 데이터 내보내기 연결에는 소켓·구문 제한 시간과 TCP keepalive를 적용했습니다.</li></ul></section><section class="case-section" id="result"><h2>결과</h2><p>호출 서비스는 긴 파일 생성 로직을 직접 구현하지 않고 작업 메시지와 상태 통보 규격으로 공통 워커를 연동할 수 있게 됐습니다. 고객사별 데이터 경계와 저장소별 차이를 작업 흐름에서 분리해 연동 대상이 늘어도 변경 범위를 좁혔습니다.</p><p>취소·실패 시 상태와 결과물 정리를 같은 흐름에서 수행해 화면의 작업 상태와 실제 파일이 어긋날 가능성을 줄였습니다.</p></section>
-        <section class="case-section diagram-section" id="diagram"><h2>대용량 데이터 다운로드 작업 흐름</h2><p>변환 시작과 업로드 상태를 통보하고, 업로드 전후 취소 여부를 확인합니다. 최종 상태를 알린 뒤 임시 파일과 연결 정보를 정리합니다.</p><figure class="diagram-frame"><a class="diagram-preview" href="../assets/diagrams/csv-convert-worker-async-flow.html" target="_blank" rel="noopener noreferrer" aria-label="대용량 데이터 다운로드 작업 흐름 확대·탐색"><img src="../assets/diagrams/csv-convert-worker-async-flow.png" alt="대용량 데이터 다운로드 작업 흐름 전체 흐름" width="65536" height="4292542531" loading="lazy"></a><figcaption>전체 흐름을 먼저 보고, 세부 내용은 확대해서 확인할 수 있습니다.<a href="../assets/diagrams/csv-convert-worker-async-flow.html" target="_blank" rel="noopener noreferrer">다이어그램 확대·탐색 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></figcaption></figure></section>
-        <div class="next-project"><span class="eyebrow">NEXT PROJECT</span><a href="data-performance.html">데이터 조회·가공 성능과 정확성 개선 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></div>
-      </div>
-    </div></main>
-  <footer class="site-footer wrap"><a class="brand-mark" href="../index.html" aria-label="홈">OS<span>.</span></a><p>오승환 · 데이터 플랫폼 백엔드 개발자</p><a href="https://github.com/osh8242" target="_blank" rel="noopener noreferrer">GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></footer>
+  <h1>포트폴리오 주소가 변경되었습니다.</h1>
+  <p><a href="../portfolio/projects/file-worker.html">새 포트폴리오로 이동</a></p>
 </body>
 </html>

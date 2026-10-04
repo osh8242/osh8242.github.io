@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parent
+SITE = ROOT / "portfolio"
 
 
 class Page(HTMLParser):
@@ -31,9 +32,12 @@ class Page(HTMLParser):
                 self.links.append(attrs[key])
 
 
-pages = [Page(ROOT / "index.html")]
+site_pages = [Page(SITE / "index.html")]
+site_pages += [Page(path) for path in sorted((SITE / "projects").glob("*.html"))]
+assert len(site_pages) == 7, "Expected a home page and six project pages"
+pages = site_pages + [Page(ROOT / "index.html"), Page(ROOT / "portpolio" / "index.html")]
 pages += [Page(path) for path in sorted((ROOT / "projects").glob("*.html"))]
-assert len(pages) == 7, "Expected a home page and six project pages"
+pages += [Page(path) for path in sorted((ROOT / "assets" / "diagrams").glob("*.html"))]
 by_path = {page.path.resolve(): page for page in pages}
 errors = []
 checked = 0
@@ -45,6 +49,8 @@ for page in pages:
         if url.scheme or url.netloc:
             continue
         target = (page.path.parent / unquote(url.path)).resolve() if url.path else page.path.resolve()
+        if target.is_dir():
+            target = target / "index.html"
         if not target.is_file():
             page.errors.append(f"Missing local file: {link}")
         elif url.fragment and target in by_path and unquote(url.fragment) not in by_path[target].ids:
